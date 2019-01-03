@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>js实现红绿灯控制系统</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            background-color: #222;
+            margin: 0;
+            padding: 0;
+        }
+
+        div {
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .top,
+        .footer {
+            width: 100%;
+            height: 38%;
+        }
+
+        .middle {
+            width: 100%;
+            height: 24%;
+        }
+
+        .road-top {
+            width: 12%;
+            height: 100%;
+            float: left;
+            border-bottom: 10px dotted #fff;
+        }
+
+        .road-left {
+            width: 43%;
+            height: 100%;
+            float: left;
+            border-right: 10px dotted #fff;
+        }
+
+        .road-right {
+            width: 43%;
+            height: 100%;
+            float: right;
+            border-left: 10px dotted #fff;
+        }
+
+        .road-bottom {
+            width: 12%;
+            height: 100%;
+            float: left;
+            border-top: 10px dotted #fff;
+        }
+
+        .road {
+            width: 44%;
+            height: 100%;
+            float: left;
+            background-color: #fff;
+        }
+
+        .top1 {
+            border-bottom: 6px solid #c3b0b0;
+            border-right: 6px solid #c3b0b0;
+        }
+
+        .top2 {
+            border-bottom: 6px solid #c3b0b0;
+            border-left: 6px solid #c3b0b0;
+        }
+
+        .bottom1 {
+            border-top: 6px solid #c3b0b0;
+            border-right: 6px solid #c3b0b0;
+        }
+
+        .bottom2 {
+            border-top: 6px solid #c3b0b0;
+            border-left: 6px solid #c3b0b0;
+        }
+
+        .road-bg {
+            background-color: #222;
+            position: relative;
+        }
+
+        .line {
+            border-left: 10px dotted #ffffff;
+        }
+
+        .line2 {
+            border-top: 10px dotted #ffffff;
+        }
+
+        .top-line {
+            width: 10px;
+            height: 65%;
+            margin: 0 auto;
+        }
+
+        .bottom-line {
+            width: 10px;
+            height: 65%;
+            margin: auto;
+            margin-top: 80px;
+        }
+
+        .left-line {
+            height: 10px;
+            width: 80%;
+            position: absolute;
+            top: 45%;
+        }
+
+        .right-line {
+            height: 10px;
+            width: 80%;
+            position: absolute;
+            top: 45%;
+            right: 0;
+        }
+
+        .light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #fff;
+            margin: 8px;
+        }
+
+        .light-box-b {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+        }
+
+        .light-box-t {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+        }
+
+        .light-box-l {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+        }
+
+        .light-box-r {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="top">
+            <div class="road top1"></div>
+            <div class="road-top road-bg">
+                <div class="line top-line"></div>
+                <div class="light-box-t">
+                    <div class="light v-red" id="topRed"></div>
+                    <div class="light v-yellow" id="topYellow"></div>
+                    <div class="light v-green" id="topGreen"></div>
+                </div>
+            </div>
+            <div class="road top2"></div>
+        </div>
+        <div class="middle">
+            <div class="road-left road-bg">
+                <div class="line2 left-line"></div>
+                <div class="light-box-l">
+                    <div class="light h-red" id="leftRed"></div>
+                    <div class="light h-yellow" id="leftYellow"></div>
+                    <div class="light h-green" id="leftGreen"></div>
+                </div>
+
+            </div>
+            <div class="road-right road-bg">
+                <div class="line2 right-line"></div>
+                <div class="light-box-r">
+                    <div class="light h-red" id="rightRed"></div>
+                    <div class="light h-yellow" id="rightYellow"></div>
+                    <div class="light h-green" id="rightGreen"></div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="road bottom1"></div>
+            <div class="road-bottom road-bg">
+                <div class="line bottom-line"></div>
+                <div class="light-box-b">
+                    <div class="light v-red" id="bottomRed"></div>
+                    <div class="light v-yellow" id="bottomYellow"></div>
+                    <div class="light v-green" id="bottomGreen"></div>
+                </div>
+            </div>
+            <div class="road bottom2"></div>
+        </div>
+    </div>
+    <script>
+        var dir1 = true,
+            colorIndex1 = 0,
+            colorArr = ['green', 'yellow', 'red'],
+            hTime = 10000,
+            vTime = 5000,
+            yellowTime = 3000;
+
+        function openLight(dir, colorIndex) {
+            var hv = dir ? 'h' : 'v';
+            document.getElementsByClassName(hv + '-' + colorArr[colorIndex])[0].style.backgroundColor = colorArr[colorIndex];
+            document.getElementsByClassName(hv + '-' + colorArr[colorIndex])[1].style.backgroundColor = colorArr[colorIndex];
+        }
+        function closeLight(dir, colorIndex) {
+            var hv = dir ? 'h' : 'v';
+            document.getElementsByClassName(hv + '-' + colorArr[colorIndex])[0].style.backgroundColor = '#fff';
+            document.getElementsByClassName(hv + '-' + colorArr[colorIndex])[1].style.backgroundColor = '#fff';
+        }
+
+
+        function run(dir, colorIndex) {
+            var time = dir ? hTime : vTime;
+            openLight(dir, colorIndex); // open h green
+            closeLight(dir, colorIndex + 2)
+            openLight(!dir, colorIndex + 2); //open v red
+            setTimeout(function () {
+                closeLight(dir, colorIndex); //close h green 
+                colorIndex = colorIndex == 2 ? 0 : colorIndex + 1;
+                openLight(dir, colorIndex); //open h yellow
+                setTimeout(function () {
+                    closeLight(dir, colorIndex); //close h yellow
+                    colorIndex = colorIndex == 2 ? 0 : colorIndex + 1;
+                    openLight(dir, colorIndex) //open h red
+                    dir = !dir;
+                    colorIndex = colorIndex == 2 ? 0 : colorIndex + 1;
+                    run(dir, colorIndex)
+                }, yellowTime);
+            }, time);
+        }
+
+        run(dir1, colorIndex1);
+    </script>
+</body>
+
+</html>

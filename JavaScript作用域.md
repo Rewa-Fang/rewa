@@ -1,3 +1,4 @@
+
 ### JavaScript编译过程
 
 在学习作用域之前先简单了解一下JavaScript的编译、执行过程。 
@@ -137,7 +138,8 @@ foo('var a = 2;');
 
 默认情况下，如果`eval()`中有包含声明，就会对所处的词法作用域进行修改；在严格模式下,`eval()`在运行时有其自己的词法作用域，那么将无法修改所在的作用域，如上述代码。 
 
-##### with
+<a name="with"></a>
+##### with 
 
 ```
 var obj = {
@@ -190,4 +192,139 @@ JavaScript引擎在编译阶段会进行性能优化。其中有一些优化依�
 如果引擎在代码中发现了`eval`或`with`，它无法在词法分析阶段明确知道`eval(...)`接生什么代码；也无法知道传递给with用来创建新词法作用域的对象内容是什么。 那么优化未知的代码和词法作用域是没有意义的，引擎将放弃优化这一部分。  
 
 如果在代码中频繁使用`eval`或`with`，程序运行起来将会非常慢。 
+
+#### 函数作用域
+
+函数内部的变量和函数定义都可以封装起来，外部无法访问封装在函数内部的变量标识符。
+
+如下代码：
+```
+function foo(){
+    var a = 1;
+    function sayHi(){
+        console.log('Hello!')
+    }
+}
+
+console.log(a); // ReferenceError:a is not defined
+sayHi(); //ReferenceError: sayHi is not defined 
+
+```
+
+在函数外部访问其内部的变量与函数会抛出异常。 
+
+这样函数就可以行成一个相对独立的作用域，可以用函数来封装一个相对独立的功能。 把业务代码隐藏在函数内部实现，对外暴露接口；只要传入不同的参数就可以输入对应的结果。
+所以很多情况下函数可以用来模拟Java语言中类的实现。 
+
+例如： 
+```
+function shoot(who,score){
+    //这里面可以包含更多逻辑
+    function one(){
+        console.log(who + '罚篮命中！到得' +score+ '分！');
+    }
+    function dunk(){
+        console.log(who + '扣篮，获得' +score+ '分！');
+    }
+    function three(){
+        console.log(who + '命中了一个' +score+ '分球！');
+    }
+    switch(score){
+        case 1:
+            one();
+            break;
+        case 2:
+            dunk();
+            break;
+        case 3:
+            three();
+            break;
+    }
+}
+
+shoot('Kobe',3); // Kobe投中了一个3分球！'
+shoot('Lebron',2); // Lebron扣篮，获得2分！' 
+shoot('Shaq',1); // Shaq罚篮命中！到得1分！' 
+
+```
+
+函数内部隐藏变量与函数的定义可以避免污染全局命名空间；比如当全局作用域中也有`one` `dunk` `three` 这些函数，并且内部实现不同；代码逻辑就会混乱。 而在上面的代码中，函数中定义的函数会遮蔽外部作用域的函数定义，只会调用到当前函数作用域中的同名函数。 
+
+但是即使如此，大量的函数声明同样也会污染全局全名空间。 当下流行的模块化就是解决这一问题的方案之一。不过在模块化出来之前，大多数情况可以使用**立即执行函数**（IIFE）来解决。 
+代码如下：
+```
+
+(function(){
+    var name = 'kobe';
+    console.log(name);
+})();
+
+```
+当函数执行结束后，`name`变量会被垃圾回收； 且不会与外部的任何作用域产生冲突，因为整个函数都执行在一个立即执行函数中。它是一个块作用域，且本身也没有在作用域下创建任何标识符。  
+
+立即执行函数也可以接受参数，用来函数内部引用： 
+
+```
+(function(name){
+    console.log(name);
+})('kobe');
+
+```
+
+JavaScript中除了函数作用域，还有其它块作用域。比如with也是块作用域；上面有过介绍[with](#with)。 还有一个容易被忽略的块作用域 `try/catch` 。 
+
+```
+try{
+    undefined(); //抛出异常
+}
+catch(err){
+    console.log(err); // 正常执行
+}
+
+console.log(err); //ReferenceError: err is not defined
+
+```
+`err`只能在`catch`中访问，在外部的引用会抛出异常。 
+
+对于块作用域，`ES6`中我们可以用`let`声明实现这种需求。  
+
+```
+if(true){
+    let a = 1;
+    console.log(a); //1
+}
+ 
+console.log(a); //ReferenceError: a is not defined
+```
+
+`if(){}` 并不是块作用域，但上述代码中`let`可以让`a`变量成为仅`if(){...}`中的变量，外部不可访问。 
+
+这是不是像极了`try/catch` , 可`let`是`ES6`的标准；在`ES6`之前实现类似块作用域效果的方法可没这么轻松。 现在一般我们在编写`ES6`代码，想要运行在所有浏览器上需要通过转译。而转译器也会把类似let的声明，转为 `try/catch`的形式。 
+
+```
+{
+    let a = 1;
+    console.log(a); // 1
+}
+console.log(a); //ReferenceError: a is not defined
+```
+转为： 
+```
+try{
+    throw 1;
+}catch(a){
+    console.log(a); //1
+}
+console.log(a); //ReferenceError: a is not defined
+```
+
+还有可能转译为： 
+```
+{
+    let _a = 1;  // 把{}中的 a 转为_a 
+    console.log(_a); 
+}
+console.log(a); 
+
+```
 

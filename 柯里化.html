@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+
+        function add() {
+            // 第一次执行时，定义一个数组专门用来存储所有的参数
+            let args = Array.prototype.slice.call(arguments);
+
+            // 在内部声明一个函数，利用闭包的特性保存_args并收集所有的参数值
+            let total = function () {
+                args.push(...arguments);
+                return total;
+            };
+            // 利用toString隐式转换的特性，当最后执行时隐式转换，并计算最终的值返回
+            total.toString = function () {
+                return args.reduce((sum, item) => sum + item);
+            }
+            // debugger
+            return total;
+        }
+
+        console.log(add(1));
+        console.log(add(1)(2));
+        console.log(add(1)(2)(3));
+        console.log(add(1)(2, 3));
+        console.log(add(1, 2)(3));
+        console.log(add(1, 2, 3));
+
+    </script>
+</body>
+
+</html>
